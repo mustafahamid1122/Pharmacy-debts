@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ديون المذاخر</title>
+<style>
+:root{--bg:#f5f7f6;--card:#fff;--tx:#17211d;--mu:#66756f;--bd:#e2e8e5;--pr:#0f766e;--prt:#fff;--rd:#c0392b;--rdb:#fdeceb;--am:#b7791f;--amb:#fdf3dc;--gn:#2f855a;--gnb:#e6f4ec;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101514;--card:#19211f;--tx:#e8eeeb;--mu:#93a39c;--bd:#2a3532;--pr:#2dd4bf;--prt:#06201c;--rd:#ff8a7a;--rdb:#3a1f1c;--am:#f0c060;--amb:#38300f;--gn:#6fcf97;--gnb:#14301f}}
+:root[data-theme="dark"]{--bg:#101514;--card:#19211f;--tx:#e8eeeb;--mu:#93a39c;--bd:#2a3532;--pr:#2dd4bf;--prt:#06201c;--rd:#ff8a7a;--rdb:#3a1f1c;--am:#f0c060;--amb:#38300f;--gn:#6fcf97;--gnb:#14301f}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,"Segoe UI",Tahoma,Arial,sans-serif}
+.w{max-width:820px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.btn{background:var(--pr);color:var(--prt);border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.g{background:transparent;color:var(--pr);border:1px solid var(--bd)}
+.btn.s{padding:6px 10px;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.st{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px}
+.st small{color:var(--mu);display:block;font-size:12px}.st b{font-size:17px}
+.st.r b{color:var(--rd)}.st.a b{color:var(--am)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px}
+.chip{flex:none;background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:6px 14px;cursor:pointer;color:var(--tx);font:inherit;font-size:14px}
+.chip.on{background:var(--pr);color:var(--prt);border-color:var(--pr)}
+.sc{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.mu{color:var(--mu);font-size:13px}.big{font-size:20px;font-weight:700}
+.tag{display:inline-block;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600}
+.t-r{background:var(--rdb);color:var(--rd)}.t-a{background:var(--amb);color:var(--am)}.t-g{background:var(--gnb);color:var(--gn)}.t-n{background:var(--bd);color:var(--mu)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 12px;margin:8px 0;font-size:14px}
+.grid span{color:var(--mu)}
+dialog{border:1px solid var(--bd);border-radius:16px;background:var(--bg);color:var(--tx);width:min(94vw,640px);max-height:88vh;padding:14px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.f{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;margin:8px 0}
+.f label{font-size:12px;color:var(--mu);display:block}
+.f input{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.f .full{grid-column:1/-1}
+.empty{text-align:center;color:var(--mu);padding:30px 10px}
+#msg{font-size:14px;color:var(--mu);margin:6px 0}
+</style>
+</head>
+<body>
+<div class="w">
+<h1><span>💊 ديون المذاخر</span><button class="btn" id="add">+ فاتورة</button></h1>
+<div class="stats" id="stats"></div>
+<div class="chips" id="chips"></div>
+<div id="list"></div>
+<div class="row" style="margin-top:20px;justify-content:center"><button class="btn g s" id="exp">⬇ نسخة احتياطية</button><button class="btn g s" id="imp">⬆ استرجاع نسخة</button><button class="btn g s" id="lo">خروج</button></div>
+<input type="file" id="impf" accept=".json" hidden>
+<div id="auth" style="position:fixed;inset:0;background:var(--bg);z-index:50;display:none;padding:24px;overflow:auto"><div class="w"><h1>💊 ديون المذاخر</h1>
+<div class="f"><div class="full"><label>الإيميل</label><input id="em" type="email" autocomplete="username"></div><div class="full"><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password"></div></div>
+<button class="btn" id="li" style="width:100%">دخول</button><div id="ae" class="mu" style="margin-top:8px"></div></div></div>
+</div>
+
+<dialog id="dlg">
+<div class="row"><b>إضافة فواتير</b><button class="btn g s" id="x">إغلاق</button></div>
+<p class="mu">أدخل بيانات الفاتورة ثم احفظ.</p>
+<div class="row" style="justify-content:flex-start">
+<button class="btn g" id="man">+ فاتورة ثانية</button>
+</div>
+<div id="msg"></div><div id="drafts"></div>
+<button class="btn" id="save" style="width:100%;margin-top:8px;display:none">حفظ الكل</button>
+</dialog>
+<datalist id="sl"></datalist>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+let inv=[],sel=null,store=null,drafts=[];
+const fmt=n=>Number(n||0).toLocaleString('en-US');
+const today=()=>new Date(new Date().toDateString());
+const dueD=i=>{const d=new Date(i.date);d.setDate(d.getDate()+Number(i.termDays||0));return d};
+const left=i=>Math.round((dueD(i)-today())/864e5);
+const iso=d=>d.toISOString().slice(0,10);
+const rem=i=>i.paid?0:Math.max(0,Number(i.amount||0)-Number(i.paidAmount||0));
+const defTerm=n=>{const l=inv.filter(i=>i.supplier===n).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];return l?(Number(l.termDays)||30):30};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function status(i){if(rem(i)<=0)return['مسدد','t-g'];const l=left(i);
+ if(isNaN(l))return['—','t-n'];if(l<0)return['متأخر '+(-l)+' يوم','t-r'];if(l<=7)return['باقي '+l+' يوم','t-a'];return['باقي '+l+' يوم','t-n']}
+
+function render(){
+ const open=inv.filter(i=>rem(i)>0);
+ const sum=a=>a.reduce((s,i)=>s+rem(i),0);
+ const od=open.filter(i=>left(i)<0),wk=open.filter(i=>left(i)>=0&&left(i)<=7);
+ $('#stats').innerHTML=`<div class="st"><small>إجمالي الديون</small><b>${fmt(sum(open))}</b></div>
+ <div class="st r"><small>متأخر</small><b>${fmt(sum(od))}</b></div>
+ <div class="st a"><small>يستحق خلال 7 أيام</small><b>${fmt(sum(wk))}</b></div>`;
+ const names=[...new Set(inv.map(i=>i.supplier))].sort((a,b)=>a.localeCompare(b,'ar'));
+ if(sel&&!names.includes(sel))sel=null;
+ $('#sl').innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
+ $('#chips').innerHTML=`<button class="chip ${sel?'':'on'}" data-s="">الكل</button>`+names.map(n=>`<button class="chip ${sel===n?'on':''}" data-s="${esc(n)}">${esc(n)}</button>`).join('');
+ const L=$('#list');
+ if(!inv.length){L.innerHTML='<div class="empty">ماكو فواتير للحين.<br>اضغط «+ فاتورة» وارفع صورة أول فاتورة.</div>';return}
+ if(!sel){
+  L.innerHTML=names.map(n=>{const a=inv.filter(i=>i.supplier===n),o=a.filter(i=>rem(i)>0),late=o.filter(i=>left(i)<0).length;
+   const next=o.filter(i=>left(i)>=0).sort((x,y)=>dueD(x)-dueD(y))[0];
+   return `<div class="sc" data-s="${esc(n)}" style="cursor:pointer"><div class="row"><b>${esc(n)}</b>${late?`<span class="tag t-r">${late} متأخرة</span>`:''}</div>
+   <div class="big">${fmt(sum(o))} <span class="mu">دينار</span></div>
+   <div class="mu">${o.length} فاتورة غير مسددة${next?' • أقرب استحقاق بعد '+left(next)+' يوم':''}</div></div>`}).join('');
+ }else{
+  const a=inv.filter(i=>i.supplier===sel).sort((x,y)=>((rem(x)>0?0:1)-(rem(y)>0?0:1))||new Date(x.date)-new Date(y.date));
+  const o=a.filter(i=>rem(i)>0),disc=a.reduce((s,i)=>s+Number(i.discount||0),0);
+  let h=`<div class="sc"><div class="row"><b>${esc(sel)}</b><button class="btn s" data-pay="1">تسديد مبلغ</button></div><div class="grid"><span>إجمالي الدين</span><b>${fmt(sum(o))}</b><span>عدد الفواتير المفتوحة</span><b>${o.length}</b><span>مجموع الخصومات</span><b>${fmt(disc)}</b><span>إجمالي المسدد</span><b>${fmt(a.reduce((s,i)=>s+Number(i.amount||0)-rem(i),0))}</b></div></div>`;
+  h+=a.map(i=>{const[t,c]=status(i);return `<div class="sc" style="${rem(i)<=0?'opacity:.6':''}"><div class="row"><b>فاتورة ${esc(i.invoiceNo||'—')}</b><span class="tag ${c}">${t}</span></div>
+  <div class="big">${fmt(rem(i))} <span class="mu">متبقي من ${fmt(i.amount)}</span></div>${(i.pays||[]).length?`<div class="mu">دفعات: ${i.pays.map(p=>fmt(p.a)+' ('+p.d+')').join(' • ')}</div>`:''}
+  <div class="grid"><span>تاريخ الفاتورة</span><b>${esc(i.date)}</b><span>مدة السداد</span><b>${esc(i.termDays)} يوم</b><span>الاستحقاق</span><b>${isNaN(dueD(i))?'—':iso(dueD(i))}</b><span>الخصم</span><b>${fmt(i.discount)}</b><span>البونص</span><b>${esc(i.bonus||'—')}</b></div>
+  <div class="row">${rem(i)>0?`<button class="btn s" data-p="${i.id}">تسديد كامل</button>`:`<button class="btn g s" data-u="${i.id}">إلغاء التسديد</button>`}<button class="btn g s" data-d="${i.id}">حذف</button></div></div>`}).join('');
+  L.innerHTML=h;
+ }
+}
+
+/* storage: Supabase */
+const SB=supabase.createClient('https://nykqikmznmwnyiweerut.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55a3Fpa216bm13bnlpd2VlcnV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTg4MTcsImV4cCI6MjEwOTc5NDgxN30.hXLewDuxhDdc0JASG_ygJcV9b8aZ93ozfnRpa5qTfm0');
+const toRow=i=>({id:i.id,supplier:i.supplier,invoice_no:i.invoiceNo||'',date:i.date,amount:i.amount,discount:i.discount||0,bonus:i.bonus||'',term_days:i.termDays||0,paid_amount:i.paidAmount||0,pays:i.pays||[]});
+const fromRow=r=>({id:r.id,supplier:r.supplier,invoiceNo:r.invoice_no,date:r.date,amount:Number(r.amount),discount:Number(r.discount),bonus:r.bonus,termDays:r.term_days,paidAmount:Number(r.paid_amount),pays:r.pays||[]});
+async function load(){const{data,error}=await SB.from('pharm_invoices').select('*').order('date');if(error)return alert('خطأ: '+error.message);inv=data.map(fromRow);render()}
+store={save:async i=>{const{error}=await SB.from('pharm_invoices').upsert(toRow(i));if(error)alert('ما انحفظت: '+error.message);await load()},
+ del:async id=>{const{error}=await SB.from('pharm_invoices').delete().eq('id',id);if(error)alert(error.message);await load()}};
+const showAuth=v=>{$('#auth').style.display=v?'block':'none'};
+async function init(){
+ const{data:{session}}=await SB.auth.getSession();showAuth(!session);if(session)load();else render();
+ SB.auth.onAuthStateChange((_e,s)=>{showAuth(!s);if(s)load();else{inv=[];render()}});
+}
+$('#li').onclick=async()=>{$('#ae').textContent='';const{error}=await SB.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});if(error)$('#ae').textContent='الإيميل أو كلمة السر غلط'};
+$('#lo').onclick=()=>SB.auth.signOut();
+
+/* clicks */
+document.addEventListener('click',async e=>{
+ const t=e.target.closest('[data-s],[data-p],[data-d],[data-u],[data-pay]');if(!t)return;
+ if(t.dataset.s!==undefined){sel=t.dataset.s||null;render();return}
+ if(t.dataset.pay){await payAmount();return}
+ if(t.dataset.p){const i=inv.find(x=>x.id===t.dataset.p);await store.save({...i,paid:false,paidAmount:Number(i.amount),pays:[...(i.pays||[]),{d:iso(new Date()),a:rem(i)}]})}
+ if(t.dataset.u){const i=inv.find(x=>x.id===t.dataset.u);await store.save({...i,paid:false,paidAmount:0,pays:[]})}
+ if(t.dataset.d&&confirm('تحذف هذي الفاتورة؟'))await store.del(t.dataset.d);
+});
+
+async function payAmount(){
+ const o=inv.filter(i=>i.supplier===sel&&rem(i)>0).sort((a,b)=>new Date(a.date)-new Date(b.date)||dueD(a)-dueD(b));
+ const debt=o.reduce((s,i)=>s+rem(i),0);
+ if(!debt)return alert('ماكو دين على هذا المذخر');
+ const v=prompt('شكد المبلغ اللي سددته؟ (الدين '+fmt(debt)+')');if(v===null)return;
+ let a=Number(String(v).replace(/[٠-٩]/g,c=>c.charCodeAt(0)-1632).replace(/[,٬\s]/g,''));
+ if(!a||a<=0)return alert('المبلغ غير صحيح');
+ if(a>debt){alert('المبلغ أكبر من الدين، انحسب '+fmt(debt)+' فقط');a=debt}
+ let r=a;const plan=[];
+ for(const i of o){if(r<=0)break;const p=Math.min(r,rem(i));plan.push([i,p]);r-=p}
+ if(!confirm('يتوزع من الأقدم للأحدث:\n'+plan.map(([i,p])=>'فاتورة '+(i.invoiceNo||'—')+' ('+i.date+'): '+fmt(p)).join('\n')))return;
+ const d=iso(new Date());
+ for(const [i,p] of plan)await store.save({...i,paid:false,paidAmount:Number(i.paidAmount||0)+p,pays:[...(i.pays||[]),{d,a:p}]});
+}
+/* add dialog */
+const blank=()=>({supplier:sel||'',invoiceNo:'',date:iso(new Date()),amount:'',discount:0,bonus:'',termDays:defTerm(sel||'')});
+function drawDrafts(){
+ $('#drafts').innerHTML=drafts.map((d,n)=>`<div class="f">
+ <div class="full"><label>اسم المذخر</label><input list="sl" data-n="${n}" data-k="supplier" value="${esc(d.supplier)}"></div>
+ <div><label>رقم الفاتورة</label><input data-n="${n}" data-k="invoiceNo" value="${esc(d.invoiceNo)}"></div>
+ <div><label>التاريخ</label><input type="date" data-n="${n}" data-k="date" value="${esc(d.date)}"></div>
+ <div><label>المبلغ الصافي</label><input inputmode="numeric" data-n="${n}" data-k="amount" value="${esc(d.amount)}"></div>
+ <div><label>الخصم</label><input inputmode="numeric" data-n="${n}" data-k="discount" value="${esc(d.discount)}"></div>
+ <div><label>البونص</label><input data-n="${n}" data-k="bonus" value="${esc(d.bonus)}"></div>
+ <div><label>مدة السداد (يوم)</label><input inputmode="numeric" data-n="${n}" data-k="termDays" value="${esc(d.termDays)}"></div>
+ <div class="full"><button class="btn g s" data-r="${n}">إزالة</button></div></div>`).join('');
+ $('#save').style.display=drafts.length?'block':'none';
+}
+$('#drafts').addEventListener('input',e=>{const n=e.target.dataset.n;if(n!==undefined){drafts[n][e.target.dataset.k]=e.target.value;if(e.target.dataset.k==='termDays')drafts[n].tt=1}});
+$('#drafts').addEventListener('change',e=>{const n=e.target.dataset.n;if(n!==undefined&&e.target.dataset.k==='supplier'&&!drafts[n].tt){drafts[n].termDays=defTerm(drafts[n].supplier.trim());drawDrafts()}});
+$('#drafts').addEventListener('click',e=>{const r=e.target.dataset.r;if(r!==undefined){drafts.splice(r,1);drawDrafts()}});
+$('#add').onclick=()=>{drafts=[blank()];drawDrafts();$('#msg').textContent='';$('#dlg').showModal()};
+$('#x').onclick=()=>$('#dlg').close();
+$('#man').onclick=()=>{drafts.push(blank());drawDrafts()};
+
+$('#save').onclick=async()=>{
+ let ok=0,dup=0;
+ for(const d of drafts){
+  if(!d.supplier.trim()||!Number(d.amount))continue;
+  if(d.invoiceNo&&inv.some(i=>i.supplier===d.supplier.trim()&&i.invoiceNo===d.invoiceNo)){dup++;continue}
+  const id='i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  await store.save({id,supplier:d.supplier.trim(),invoiceNo:d.invoiceNo,date:d.date,amount:Number(d.amount),discount:Number(d.discount)||0,bonus:d.bonus,termDays:Number(d.termDays)||0,paid:false});ok++;
+ }
+ $('#dlg').close();if(dup)alert(dup+' فاتورة مكررة ما انحفظت');
+};
+$('#exp').onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify(inv)],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download='pharmacy-debts-'+iso(new Date())+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+$('#imp').onclick=()=>$('#impf').click();
+$('#impf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const a=JSON.parse(await f.text());if(!Array.isArray(a))throw 0;if(!confirm('يضيف/يحدّث '+a.length+' فاتورة. تكمل؟'))return;for(const i of a)if(i&&i.id&&i.supplier)await store.save(i)}catch(x){alert('الملف غير صالح')}};
+init();
+</script>
+</body>
+</html>
